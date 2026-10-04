@@ -1,0 +1,17 @@
+# Dependencies and build output
+**/node_modules/
+**/dist/
+**/dist-ssr/
+
+# Local environment and secrets
+.env
+.env.*
+!.env.example
+
+# Local tool state
+supabase/.temp/
+.vscode/
+.idea/
+.DS_Store
+*.local
+*.log

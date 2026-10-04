@@ -1,0 +1,80 @@
+# =============================================================================
+# SMART IV MONITORING SYSTEM - LOCAL SUPABASE CONFIG
+# Academic Prototype - Not a Certified Medical Device
+# =============================================================================
+
+project_id = "smartiv"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "storage", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+shadow_port = 54320
+major_version = 15
+
+[studio]
+enabled = true
+port = 54323
+api_url = "http://127.0.0.1"
+
+[inbucket]
+enabled = true
+port = 54324
+
+[storage]
+enabled = true
+file_size_limit = "50MiB"
+
+# -----------------------------------------------------------------------------
+# AUTH
+# -----------------------------------------------------------------------------
+# NO PUBLIC SIGN-UP. This is the setting that makes "no self-service roles" real:
+# with signup disabled, the only way an auth.users row comes into existence is the
+# admin.createUser call inside the admin-create-user Edge Function, which runs
+# with the service-role key and is gated on an authenticated ADMIN.
+#
+# There is consequently nothing to stop at login either: the login page takes an
+# email and a password and nothing else, and the landing route is chosen from the
+# profile row that the database returns.
+#
+# Apply the same two settings in the hosted dashboard:
+#   Authentication -> Providers -> Email -> uncheck "Allow new users to sign up"
+
+[auth]
+enabled = true
+site_url = "http://localhost:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+
+# No public sign-up.
+enable_signup = false
+
+[auth.email]
+enable_signup = false
+enable_confirmations = false
+double_confirm_changes = true
+secure_password_change = false
+
+# -----------------------------------------------------------------------------
+# EDGE FUNCTIONS
+# -----------------------------------------------------------------------------
+# admin-create-user: verify_jwt stays ON. The function additionally re-checks the
+# caller's role from the profile row, which the platform cannot do. Turning this
+# off would let an unauthenticated caller reach the function body; it would still
+# be rejected inside, but there is no reason to weaken the front door.
+[functions.admin-create-user]
+verify_jwt = true
+
+# ingest-telemetry: verify_jwt is OFF because the caller is an ESP32 pole unit,
+# which has no Supabase account and cannot hold a JWT. It authenticates with its
+# own per-device secret instead, verified inside ingest_telemetry_secure() by
+# comparing a SHA-256 hash. This is the only reason this endpoint is public.
+[functions.ingest-telemetry]
+verify_jwt = false
