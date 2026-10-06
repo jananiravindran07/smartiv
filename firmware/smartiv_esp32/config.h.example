@@ -1,0 +1,111 @@
+// ============================================================
+// SMART IV UNIT - CONFIGURATION
+// ============================================================
+//
+// Copy this file to config.h, fill it in, and never commit config.h.
+//
+//   cp config.h.example config.h
+//
+// config.h is in .gitignore precisely so the device key never lands in the
+// repository. The sketch will not compile until this file exists.
+// ============================================================
+
+#ifndef SMARTIV_CONFIG_H
+#define SMARTIV_CONFIG_H
+
+// ------------------------------------------------------------
+// 1. WI-FI
+// ------------------------------------------------------------
+#define WIFI_SSID "your-ward-ssid"
+#define WIFI_PASSWORD "your-wifi-password"
+#define NTP_SERVER "pool.ntp.org"
+
+// ------------------------------------------------------------
+// 2. SERVER
+// ------------------------------------------------------------
+//
+// The address the ward reaches the SmartIV server on. Use the hostname if
+// DNS resolves it in the ward network, otherwise the fixed IP.
+//
+// The server must be reachable over HTTPS for the sketch as written. To use
+// plain HTTP while bench testing, drop the two TLS lines in sendReadings().
+#define API_HOST "smartiv.local"
+#define API_PORT 443
+#define API_PATH "/api/readings"
+#define HTTP_TIMEOUT_MS 4000
+
+// ------------------------------------------------------------
+// 3. DEVICE KEY
+// ------------------------------------------------------------
+//
+// Printed once by:
+//   npm run device:register -- --unit=IVU-01 --beds=1,2
+//
+// The server hashes it, so a lost key cannot be recovered and must be
+// reissued by registering the unit again.
+#define SMARTIV_DEVICE_KEY "siv_PASTE_THE_KEY_THE_SEED_OR_REGISTER_PRINTED"
+
+// Label matching the registered unit, used only for the serial banner.
+#define UNIT_LABEL "IVU-01"
+
+// ------------------------------------------------------------
+// 4. BEDS
+// ------------------------------------------------------------
+//
+// Channel 1 weighs the bag on the first bed, channel 2 the bag on the second.
+// This must match the order given when the unit was registered. A unit that
+// reports a bed it is not registered for is rejected.
+#define BED_FOR_CHANNEL_1 1
+#define BED_FOR_CHANNEL_2 2
+
+// ------------------------------------------------------------
+// 5. BAG AND FLUID
+// ------------------------------------------------------------
+#define BAG_SIZE_ML 100.0f
+#define FLUID_DENSITY 1.0f
+
+// ------------------------------------------------------------
+// 6. LOAD CELL CALIBRATION  (measure these, do not assume them)
+// ------------------------------------------------------------
+//
+// Weigh the empty bag plus the tubing hanging from the cell.
+#define EMPTY_BAG_MASS_G_CHANNEL_1 0.0f
+#define EMPTY_BAG_MASS_G_CHANNEL_2 0.0f
+
+// Every load cell and HX711 pair needs its own factor.
+#define CALIBRATION_FACTOR_CHANNEL_1 102500.0f
+#define CALIBRATION_FACTOR_CHANNEL_2 102500.0f
+
+// ------------------------------------------------------------
+// 7. REPORTING
+// ------------------------------------------------------------
+#define REPORT_INTERVAL_MS 2000
+
+// ------------------------------------------------------------
+// 8. LOCAL ALARM LIMITS
+// ------------------------------------------------------------
+//
+// These drive the on-board buzzer only, so the unit can raise an alarm with
+// no network. They must match the server's alert rules, which admins can
+// change in the dashboard. Update them here when the ward rules change.
+#define CRIT_MINUTES 15
+#define CRIT_PERCENT 10
+#define WARN_MINUTES 45
+#define WARN_PERCENT 25
+
+// ------------------------------------------------------------
+// 9. TLS
+// ------------------------------------------------------------
+//
+// Use whichever your server uses.
+//
+// ROOT_CA_PEM: the server's CA certificate, PEM encoded, as one string. This
+//              is the correct choice for a real ward server.
+// ROOT_CA_SHA256: the SHA-256 fingerprint of the server certificate, with the
+//              colons removed. Convenient while setting up.
+//
+// Leaving ROOT_CA_PEM empty selects the fingerprint.
+#define ROOT_CA_PEM ""
+#define ROOT_CA_SHA256 "0000000000000000000000000000000000000000000000000000000000000000"
+
+#endif // SMARTIV_CONFIG_H

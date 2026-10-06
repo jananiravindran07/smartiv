@@ -24,3 +24,8 @@ server/data/
 *.sqlite-journal
 *.sqlite-wal
 *.sqlite-shm
+
+# Firmware secrets. config.h holds the Wi-Fi password and the device key and
+# is created from config.h.example, so it must never be committed.
+firmware/**/config.h
+firmware/**/secrets.h
