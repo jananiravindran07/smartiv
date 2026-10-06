@@ -65,11 +65,12 @@ export function createApp({ db, config, events, simulator }: CreateAppOptions) {
       offlineAfterMs: config.offlineAfterMs,
     }),
   );
-  app.use('/api', (_request, response) => response.status(404).json({ error: 'API route not found.' }));
-
+  // Must be registered before the /api 404 catch-all below.
   app.get('/api/health', (_request, response) =>
     response.json({ ok: true, simulate: config.simulate, liveClients: events.size }),
   );
+
+  app.use('/api', (_request, response) => response.status(404).json({ error: 'API route not found.' }));
 
   // In development the Vite dev server hosts the front end and proxies here.
   // In production the built bundle is served from the same origin.
