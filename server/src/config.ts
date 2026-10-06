@@ -43,7 +43,10 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): ServerConfig {
     jwtSecret,
     // SIMULATE=true stands in for the hardware so the app runs with no units attached.
     simulate: env.SIMULATE === 'true',
-    secureCookie: nodeEnv === 'production',
+    // The session cookie is Secure in production. Set SECURE_COOKIE=false to
+    // serve a production build over plain HTTP, which a ward TV on an isolated
+    // LAN may need. Leave it unset so the default follows NODE_ENV.
+    secureCookie: env.SECURE_COOKIE ? env.SECURE_COOKIE === 'true' : nodeEnv === 'production',
     nodeEnv,
     // In dev the Vite dev server hosts the front end; production serves web/dist.
     webDist: override ?? (nodeEnv === 'production' ? fileURLToPath(new URL('../../web/dist', import.meta.url)) : null),
