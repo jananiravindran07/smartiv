@@ -8,10 +8,19 @@
 .env.*
 !.env.example
 
+# Unrelated reference projects kept in the workspace
+User-Authentication-System-with-NodeJs/
+
 # Local tool state
-supabase/.temp/
 .vscode/
 .idea/
 .DS_Store
 *.local
 *.log
+
+# SQLite database and WAL sidecar files
+server/data/
+*.sqlite
+*.sqlite-journal
+*.sqlite-wal
+*.sqlite-shm
