@@ -54,19 +54,21 @@ try {
 
   // The prototype's 12-bed ward. Beds 1 and 2 hang on the single real unit;
   // beds 3-12 exist so an admin can review other beds with demo values.
+  // Bags are 100 mL, which is what the hardware actually carries, so the
+  // seeded flow rates and volumes are realistic for a real infusion.
   const bedSeeds = [
-    [1, 'R.K.', 54, '0.9% Normal Saline', 500, 28, 120],
-    [2, 'S.M.', 37, "Ringer's Lactate", 500, 310, 100],
-    [3, 'P.V.', 62, 'Dextrose Normal Saline', 500, 80, 125],
-    [4, 'A.L.', 29, '0.9% Normal Saline', 1000, 640, 125],
-    [5, 'T.N.', 71, "Ringer's Lactate", 500, 12, 100],
-    [6, 'M.D.', 45, '5% Dextrose', 500, 220, 80],
+    [1, 'R.K.', 54, '0.9% Normal Saline', 100, 28, 120],
+    [2, 'S.M.', 37, "Ringer's Lactate", 100, 76, 100],
+    [3, 'P.V.', 62, 'Dextrose Normal Saline', 100, 80, 125],
+    [4, 'A.L.', 29, '0.9% Normal Saline', 100, 64, 125],
+    [5, 'T.N.', 71, "Ringer's Lactate", 100, 12, 100],
+    [6, 'M.D.', 45, '5% Dextrose', 100, 88, 80],
     [7, 'K.S.', 58, 'Ceftriaxone in NS', 100, 22, 100],
-    [8, 'V.P.', 66, '0.9% Normal Saline', 500, 410, 125],
-    [9, 'J.R.', 33, 'Dextrose Normal Saline', 500, 150, 60],
-    [10, 'H.A.', 49, "Ringer's Lactate", 1000, 120, 150],
-    [11, 'D.B.', 52, '0.9% Normal Saline', 500, 60, 100],
-    [12, 'G.T.', 40, '0.9% Normal Saline', 500, 300, 100],
+    [8, 'V.P.', 66, '0.9% Normal Saline', 100, 82, 125],
+    [9, 'J.R.', 33, 'Dextrose Normal Saline', 100, 60, 60],
+    [10, 'H.A.', 49, "Ringer's Lactate", 100, 96, 150],
+    [11, 'D.B.', 52, '0.9% Normal Saline', 100, 60, 100],
+    [12, 'G.T.', 40, '0.9% Normal Saline', 100, 100, 100],
   ] as const;
 
   for (const [id, patientInitials, patientAge, fluidName, bagMl] of bedSeeds) {
