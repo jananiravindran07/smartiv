@@ -3,8 +3,12 @@ import { randomBytes } from 'node:crypto';
 import { hash } from 'bcryptjs';
 import { eq } from 'drizzle-orm';
 import { openDatabase } from './index.js';
-import { alertRules, bedAssignments, beds, deviceBeds, devices, readings, users } from './schema.js';
+import { alertRules, bedAssignments, alerts, acknowledgements, activityLog, beds, deviceBeds, devices, readings, users } from './schema.js';
 import { hashDeviceKey, newDeviceKey } from '../security/device-keys.js';
+
+/** `npm run db:seed -- --reset` clears live telemetry first, so a demo ward
+ *  starts from the seeded volumes instead of what the simulator left behind. */
+const reset = process.argv.includes('--reset');
 
 /**
  * SEED_DEMO_PASSWORD lets a ward set one shared demo password. When it is not
@@ -21,6 +25,14 @@ const generatedPassword = provided === undefined;
 const { sqlite, db } = openDatabase();
 try {
   const now = Date.now();
+
+  if (reset) {
+    // Order matters: children before parents.
+    db.delete(activityLog).run();
+    db.delete(acknowledgements).run();
+    db.delete(alerts).run();
+    db.delete(readings).run();
+  }
 
   const userSeeds = [
     { id: 'nurse-anitha', staffId: 'N-2041', name: 'Anitha S.', role: 'nurse' as const, beds: [1, 2] },

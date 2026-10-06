@@ -146,7 +146,9 @@ export function apiRoutes(db: AppDatabase, options: ApiRouteOptions) {
    * Dashboard
    * ------------------------------------------------------------------ */
   api.get('/beds', auth, (_request, response) => {
-    response.json({ beds: listVisibleBeds(db, currentUser(response), Date.now()) });
+    // Rules travel with the beds so a nurse sees the live thresholds without
+    // needing the admin-only route, which would be a 403 for them.
+    response.json({ beds: listVisibleBeds(db, currentUser(response), Date.now()), rules: readRules(db) });
   });
 
   api.get('/beds/:bedId/history', auth, (request, response) => {
