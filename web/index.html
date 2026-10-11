@@ -9,6 +9,14 @@
       href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Marcellus&display=swap"
       rel="stylesheet"
     />
+    <!--
+      Minya is the display face. Self-hosted from the bundle's static
+      directory, no CDN, so a packaged TV build resolves it offline. The file
+      is absent until the licensed copy is added to web/public/fonts/, and the
+      404 is harmless: the display stack falls through to Marcellus, which is
+      already loaded.
+    -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/Minya-Regular.woff2" crossorigin />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#4c0f2e" />
     <meta name="description" content="SmartIV ward IV drip monitoring dashboard." />

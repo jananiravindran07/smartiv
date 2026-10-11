@@ -4,7 +4,11 @@
 
 /* Layout: split login (brand panel + sign-in) then ward dashboard. Bands run top-down: critical, attention, running. */
 :root {
-  --font-display: 'Marcellus', 'Optima', 'Palatino Linotype', Georgia, serif;
+  /* Display text. Minya first, Marcellus as the fallback so the dashboard is
+     unchanged until the licensed files are dropped into web/fonts/. */
+  --font-display: 'Minya', 'Marcellus', 'Optima', 'Palatino Linotype', Georgia, serif;
+  /* The Outline cut, for large decorative text only. */
+  --font-display-outline: 'Minya Outline', 'Minya', 'Marcellus', Georgia, serif;
   --font-body: 'Hanken Grotesk', 'Segoe UI', system-ui, sans-serif;
   --font-data: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
   --bg: #efe6de;
@@ -108,6 +112,25 @@
 
 * {
   box-sizing: border-box;
+}
+
+/* Headings use the discretionary ligatures Minya ships. Harmless for the
+   Marcellus fallback, which has no dlig feature. */
+h1,
+h2,
+.wordmark b,
+.display-outline {
+  font-feature-settings: 'liga' 1, 'dlig' 1;
+  font-variant-ligatures: common-ligatures discretionary-ligatures;
+}
+
+/* The Outline cut is too thin below 60px to read on a ward screen, so it is
+   opt-in and only ever applied to text that is already 60px or larger. CSS
+   cannot assert a minimum font-size on a class without forcing one, so the
+   floor is a rule for call sites, not something enforced here: check
+   .display-outline is used at 60px and up. */
+.display-outline {
+  font-family: var(--font-display-outline);
 }
 
 body {
@@ -275,6 +298,18 @@ body {
 
 .hero-bag .bag-svg {
   width: clamp(110px, 15vw, 160px);
+}
+
+/* The brand panel hosts the drifting blobs, so it has to clip them. */
+.login-bg {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  height: 100%;
+}
+
+.login-bg .hero-bag {
+  margin-block: auto;
 }
 
 .hero-copy h1 {
@@ -560,19 +595,6 @@ body {
   color: var(--ink-2);
   margin-top: 6px;
   max-width: 62ch;
-}
-
-.speed {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12px;
-  color: var(--ink-2);
-}
-
-.speed .seg button {
-  padding: 5px 12px;
-  font-size: 12px;
 }
 
 .stats {
@@ -1030,6 +1052,11 @@ pre {
   border: 1px solid var(--line);
 }
 
+.data-origin {
+  flex: 0 0 auto;
+  color: var(--ink-2);
+}
+
 /* ADDED: offline strip, shown when a unit stops reporting. */
 .offline-note {
   display: flex;
@@ -1042,6 +1069,168 @@ pre {
   border: 1px solid var(--warn);
   border-radius: 6px;
   padding: 4px 9px;
+}
+
+/* --------------------------------------------------------------
+   Motion components. Brand tokens only, no Tailwind utilities.
+   Animation is switched off globally under prefers-reduced-motion below.
+   -------------------------------------------------------------- */
+
+/* TextShimmerWave: a gradient clipped to the glyphs, in currentColor so it
+   introduces no new colour. The base copy is dimmed while the sheen passes. */
+.shimmer {
+  position: relative;
+  display: inline-block;
+  color: inherit;
+}
+
+.shimmer-base {
+  opacity: 0.55;
+}
+
+.shimmer-sheen {
+  position: absolute;
+  inset: 0;
+  background-image: linear-gradient(90deg, transparent 20%, currentColor 50%, transparent 80%);
+  background-size: 220% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: sheen var(--shimmer-duration, 1.6s) linear infinite;
+  pointer-events: none;
+}
+
+@keyframes sheen {
+  0% {
+    background-position: 140% 0;
+  }
+  100% {
+    background-position: -40% 0;
+  }
+}
+
+/* AnimatedBackground: two slow brand blobs behind a panel. */
+.anim-bg {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+}
+
+.anim-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 50%;
+  pointer-events: none;
+  will-change: transform;
+}
+
+.anim-blob-a {
+  width: 62%;
+  aspect-ratio: 1;
+  top: -18%;
+  left: -12%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--blush) 34%, transparent), transparent 68%);
+}
+
+.anim-blob-b {
+  width: 54%;
+  aspect-ratio: 1;
+  bottom: -22%;
+  right: -10%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--taupe) 30%, transparent), transparent 68%);
+}
+
+/* Static stand-in used when reduced motion is requested. */
+.anim-blob-static {
+  width: 70%;
+  aspect-ratio: 1;
+  top: -20%;
+  left: -14%;
+  background: radial-gradient(circle at 50% 50%, color-mix(in srgb, var(--blush) 22%, transparent), transparent 70%);
+}
+
+.anim-content {
+  position: relative;
+}
+
+/* MorphingPopover */
+.mpop {
+  position: relative;
+  display: inline-flex;
+}
+
+.mpop-trigger {
+  background: transparent;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--ink-2);
+  width: 22px;
+  height: 22px;
+  min-height: 22px;
+  padding: 0;
+  font: 600 11px/1 var(--font-data);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+
+.mpop-trigger:hover {
+  border-color: var(--taupe);
+  color: var(--ink);
+}
+
+.mpop-trigger[aria-expanded='true'] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+
+.mpop-panel {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 40;
+  display: block;
+  width: max-content;
+  max-width: min(78vw, 300px);
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  box-shadow: var(--shadow);
+  padding: 10px 12px;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ink);
+  text-align: left;
+  font-weight: 400;
+}
+
+.mpop-panel[data-align='end'] {
+  left: auto;
+  right: 0;
+  transform-origin: top right;
+}
+
+.mpop-panel .k {
+  display: block;
+  margin-bottom: 4px;
+}
+
+.mpop-panel dl {
+  margin: 6px 0 0;
+  display: grid;
+  gap: 4px;
+}
+
+.mpop-panel .mpop-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.mpop-panel .mpop-row b {
+  font-family: var(--font-data);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ADDED: transient feedback after a bed action. */

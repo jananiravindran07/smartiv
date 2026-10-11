@@ -24,15 +24,16 @@
 // 2. SERVER
 // ------------------------------------------------------------
 //
-// The address the ward reaches the SmartIV server on. Use the hostname if
-// DNS resolves it in the ward network, otherwise the fixed IP.
-//
-// The server must be reachable over HTTPS for the sketch as written. To use
-// plain HTTP while bench testing, drop the two TLS lines in sendReadings().
-#define API_HOST "smartiv.local"
-#define API_PORT 443
+// Use the computer's LAN IP for local development, not localhost. The ESP32
+// and computer must be on the same Wi-Fi network.
+#define API_HOST "your-computer-lan-ip"
+#define API_PORT 3001
 #define API_PATH "/api/readings"
 #define HTTP_TIMEOUT_MS 4000
+
+// Local development server uses HTTP. Set to 1 only when the server uses
+// HTTPS and ROOT_CA_PEM below contains the CA certificate for that server.
+#define API_USE_TLS 0
 
 // ------------------------------------------------------------
 // 3. DEVICE KEY
@@ -94,18 +95,12 @@
 #define WARN_PERCENT 25
 
 // ------------------------------------------------------------
-// 9. TLS
+// 9. TLS (only used when API_USE_TLS is 1)
 // ------------------------------------------------------------
 //
 // Use whichever your server uses.
 //
-// ROOT_CA_PEM: the server's CA certificate, PEM encoded, as one string. This
-//              is the correct choice for a real ward server.
-// ROOT_CA_SHA256: the SHA-256 fingerprint of the server certificate, with the
-//              colons removed. Convenient while setting up.
-//
-// Leaving ROOT_CA_PEM empty selects the fingerprint.
+// ROOT_CA_PEM: the server's CA certificate, PEM encoded, as one string.
 #define ROOT_CA_PEM ""
-#define ROOT_CA_SHA256 "0000000000000000000000000000000000000000000000000000000000000000"
 
 #endif // SMARTIV_CONFIG_H

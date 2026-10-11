@@ -1,17 +1,20 @@
 import { useMemo } from 'react';
+import type { ReactNode } from 'react';
 import { BedCard } from './BedCard';
+import { TextShimmerWave } from './core/TextShimmerWave';
 import { compareMinutesLeft } from '../lib/format';
 import type { AlertRules, Bed, BedAction } from '../types';
+
+/** Used only before the server's rules arrive, so a card always has limits to show. */
+const FALLBACK_RULES: AlertRules = { criticalMinutes: 15, criticalPercent: 10, attentionMinutes: 45, attentionPercent: 25 };
 
 interface DashboardProps {
   beds: Bed[];
   rules: AlertRules | null;
   now: number;
   title: string;
-  note: string;
-  simulate: boolean;
-  speed: number;
-  onSpeed: (speed: number) => void;
+  /** Empty while the first bed snapshot is still in flight. */
+  note: ReactNode;
   onAction: (bedNumber: number, action: BedAction) => void;
 }
 
@@ -21,7 +24,7 @@ const BANDS = [
   { id: 'normal' as const, key: 'ok' as const, title: 'Running normally', empty: 'No beds are running normally right now.' },
 ];
 
-export function Dashboard({ beds, rules, now, title, note, simulate, speed, onSpeed, onAction }: DashboardProps) {
+export function Dashboard({ beds, rules, now, title, note, onAction }: DashboardProps) {
   // Bands top to bottom, each sorted by time left, soonest first.
   const grouped = useMemo(() => {
     const bySeverity: Record<Bed['severity'], Bed[]> = { critical: [], attention: [], normal: [] };
@@ -41,20 +44,8 @@ export function Dashboard({ beds, rules, now, title, note, simulate, speed, onSp
       <div className="intro">
         <div>
           <h1>{title}</h1>
-          <p>{note}</p>
+          <p>{note || <TextShimmerWave duration={1.4}>Connecting to the ward…</TextShimmerWave>}</p>
         </div>
-        {simulate && (
-          <div className="speed">
-            <span>Demo speed</span>
-            <div className="seg" role="group" aria-label="Demo speed">
-              {[1, 10, 60].map((value) => (
-                <button key={value} type="button" aria-pressed={speed === value} onClick={() => onSpeed(value)}>
-                  {value}&times;
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
       </div>
 
       <div className="stats">
@@ -95,7 +86,7 @@ export function Dashboard({ beds, rules, now, title, note, simulate, speed, onSp
             </h2>
             <div className="grid">
               {list.map((bed) => (
-                <BedCard key={bed.bedNumber} bed={bed} now={now} onAction={onAction} />
+                <BedCard key={bed.bedNumber} bed={bed} now={now} rules={rules ?? FALLBACK_RULES} onAction={onAction} />
               ))}
             </div>
             <p className="empty">{band.empty}</p>

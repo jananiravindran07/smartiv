@@ -135,7 +135,9 @@ export function getBedSnapshot(db: AppDatabase, bedId: number, now = Date.now())
 
   const reading = latestReading(db, bedId);
   const rules = readRules(db);
-  const offline = !link?.active || link.lastReadingAt === null || now - link.lastReadingAt > OFFLINE_AFTER_MS;
+  // Beds without a registered unit intentionally show seeded demo readings.
+  // Only a linked hardware bed can go offline.
+  const offline = Boolean(link && (!link.active || link.lastReadingAt === null || now - link.lastReadingAt > OFFLINE_AFTER_MS));
 
   let metrics: BedMetrics | null = null;
   let severity: BedSeverity = 'normal';

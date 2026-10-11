@@ -39,12 +39,15 @@
 // ============================================================
 
 #include <Arduino.h>
+#include "config.h"
 #include <WiFi.h>
 #include <HTTPClient.h>
+#if API_USE_TLS
+#include <WiFiClientSecure.h>
+#endif
 #include <time.h>
 #include <ArduinoJson.h>
 #include "HX711.h"
-#include "config.h"
 
 // ============================================================
 // 1. PIN CONNECTIONS
@@ -355,9 +358,20 @@ static bool sendReadings(const BagReading &bag1, const BagReading &bag2)
   char payload[512];
   size_t length = serializeJson(doc, payload, sizeof(payload));
 
+#if API_USE_TLS
+  if (strlen(ROOT_CA_PEM) == 0)
+  {
+    Serial.println(F("HTTPS is enabled but ROOT_CA_PEM is empty"));
+    return false;
+  }
+  WiFiClientSecure client;
+  client.setCACert(ROOT_CA_PEM);
+#else
   WiFiClient client;
+#endif
   HTTPClient http;
-  const String url = String(API_HOST) + ":" + String(API_PORT) + API_PATH;
+  const String scheme = API_USE_TLS ? "https://" : "http://";
+  const String url = scheme + String(API_HOST) + ":" + String(API_PORT) + API_PATH;
 
   if (!http.begin(client, url))
   {
@@ -368,16 +382,6 @@ static bool sendReadings(const BagReading &bag1, const BagReading &bag2)
   // The device key identifies the unit. The server checks it against the
   // beds this unit was registered with.
   http.addHeader("X-Device-Key", SMARTIV_DEVICE_KEY);
-
-  // TLS. Prefer a pinned certificate; fall back to the CA when one is set.
-  if (strlen(ROOT_CA_PEM) > 0)
-  {
-    http.setCACert(ROOT_CA_PEM);
-  }
-  else
-  {
-    http.setFingerprint(ROOT_CA_SHA256);
-  }
 
   const int status = http.POST((uint8_t *)payload, length);
   http.end();

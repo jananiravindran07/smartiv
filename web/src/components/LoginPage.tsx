@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { IvBag } from './IvBag';
 import { Logo } from './Icons';
+import { TextShimmerWave } from './core/TextShimmerWave';
+import { AnimatedBackground } from './core/AnimatedBackground';
 import type { Role } from '../types';
 
 interface LoginPageProps {
@@ -52,23 +54,25 @@ export function LoginPage({ onLogin }: LoginPageProps) {
   return (
     <div className="login">
       <section className="brand-panel" aria-label="SmartIV">
-        <div className="lockup">
-          <Logo />
-          <div className="wordmark">
-            <b>SMARTIV</b>
-            <small>Infusion monitor</small>
+        <AnimatedBackground className="login-bg">
+          <div className="lockup">
+            <Logo />
+            <div className="wordmark">
+              <b>SMARTIV</b>
+              <small>Infusion monitor</small>
+            </div>
           </div>
-        </div>
-        <div className="hero-bag">
-          <div>
-            <IvBag percent={62} id="hero" />
+          <div className="hero-bag">
+            <div>
+              <IvBag percent={62} id="hero" />
+            </div>
+            <div className="hero-copy">
+              <h1>Know which bag ends first.</h1>
+              <p>Live volume, flow rate and end time for every IV in the ward, with the most urgent beds always on top.</p>
+            </div>
           </div>
-          <div className="hero-copy">
-            <h1>Know which bag ends first.</h1>
-            <p>Live volume, flow rate and end time for every IV in the ward, with the most urgent beds always on top.</p>
-          </div>
-        </div>
-        <p className="fine">Live readings arrive from the ward units over Wi-Fi.</p>
+          <p className="fine">Live readings arrive from the ward units over Wi-Fi.</p>
+        </AnimatedBackground>
       </section>
 
       <section className="signin">
@@ -120,7 +124,7 @@ export function LoginPage({ onLogin }: LoginPageProps) {
           )}
 
           <button className="btn primary block" type="submit" disabled={busy}>
-            {busy ? 'Signing in…' : 'Sign in'}
+            {busy ? <TextShimmerWave duration={1.2}>Signing in…</TextShimmerWave> : 'Sign in'}
           </button>
 
           <div className="can">

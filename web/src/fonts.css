@@ -1,0 +1,65 @@
+/* Minya, the display face.
+   Files are expected in web/public/fonts/ and are not committed. See
+   web/public/fonts/README.md and FONT-LICENSE.md.
+
+   Every rule lists woff2 first, then woff, then ttf, so a modern browser
+   takes the first format it has and older smart-TV webviews still get a
+   face.
+
+   Paths are rooted at /fonts, which is Vite's static directory. That means
+   the files are copied verbatim into web/dist, so a packaged TV build
+   resolves them offline with no host name and no CDN. Relative CSS paths
+   would instead be fingerprinted at build time, which cannot work while the
+   licensed files are still absent.
+
+   A missing file makes the browser skip that rule and fall through to the
+   next family in --font-display, which is Marcellus. */
+
+@font-face {
+  font-family: 'Minya';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url('/fonts/Minya-Regular.woff2') format('woff2'),
+    url('/fonts/Minya-Regular.woff') format('woff'),
+    url('/fonts/Minya-Regular.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Minya';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url('/fonts/Minya-Italic.woff2') format('woff2'),
+    url('/fonts/Minya-Italic.woff') format('woff'),
+    url('/fonts/Minya-Italic.ttf') format('truetype');
+}
+
+/* The Outline cut is a separate family, not a second weight of Minya.
+   Two rules sharing a family, style and weight are indistinguishable to the
+   browser and the first one wins. It is too thin to read at dashboard sizes,
+   so it is only ever applied by .display-outline, reserved for 60px and up. */
+
+@font-face {
+  font-family: 'Minya Outline';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url('/fonts/Minya-Outline.woff2') format('woff2'),
+    url('/fonts/Minya-Outline.woff') format('woff'),
+    url('/fonts/Minya-Outline.ttf') format('truetype');
+}
+
+@font-face {
+  font-family: 'Minya Outline';
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src:
+    url('/fonts/Minya-OutlineItalic.woff2') format('woff2'),
+    url('/fonts/Minya-OutlineItalic.woff') format('woff'),
+    url('/fonts/Minya-OutlineItalic.ttf') format('truetype');
+}

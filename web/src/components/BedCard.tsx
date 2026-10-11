@@ -1,12 +1,14 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { IvBag } from './IvBag';
 import { SeverityIcon } from './Icons';
+import { MorphingPopover } from './core/MorphingPopover';
 import { fmtClock, fmtLeft, pad } from '../lib/format';
-import type { Bed, BedAction } from '../types';
+import type { AlertRules, Bed, BedAction } from '../types';
 
 interface BedCardProps {
   bed: Bed;
   now: number;
+  rules: AlertRules;
   onAction: (bedNumber: number, action: BedAction) => void;
 }
 
@@ -29,7 +31,28 @@ function pillLabel(bed: Bed): string {
   return 'Running';
 }
 
-export function BedCard({ bed, now, onAction }: BedCardProps) {
+/** Names the first rule that fired, which is the thing a nurse asks about. */
+function reason(bed: Bed, rules: AlertRules): string {
+  if (bed.offline) return 'No reading for over 10 s, so the unit is treated as offline.';
+  if (bed.volumeMl === null) return 'No reading yet for this bed.';
+  if (bed.volumeMl <= 0) return 'The bag is empty.';
+  if ((bed.flowMlH ?? 0) <= 0) return 'Flow has stopped, which is always critical.';
+  if (bed.severity === 'normal') {
+    return `Inside the limits: more than ${rules.attentionMinutes} min left and more than ${rules.attentionPercent}% volume.`;
+  }
+  const minutes = Math.round(bed.minutesLeft ?? 0);
+  const percent = Math.round(bed.percentLeft ?? 0);
+  const limitMinutes = bed.severity === 'critical' ? rules.criticalMinutes : rules.attentionMinutes;
+  const limitPercent = bed.severity === 'critical' ? rules.criticalPercent : rules.attentionPercent;
+  if (minutes <= limitMinutes && percent <= limitPercent) {
+    return `${minutes} min left (limit ${limitMinutes}) and ${percent}% volume (limit ${limitPercent}%).`;
+  }
+  return minutes <= limitMinutes
+    ? `${minutes} min left, at or under the ${limitMinutes} min limit.`
+    : `${percent}% volume, at or under the ${limitPercent}% limit.`;
+}
+
+export function BedCard({ bed, now, rules, onAction }: BedCardProps) {
   const [armed, setArmed] = useState(false);
   const armTimer = useRef<number | undefined>(undefined);
 
@@ -88,12 +111,38 @@ export function BedCard({ bed, now, onAction }: BedCardProps) {
           <span className="pt">
             {bed.patientInitials} · {bed.patientAge} y
           </span>
+          <span className="tag data-origin">{bed.hasDevice ? `${bed.unit} · ch${bed.channel}` : 'Demo data'}</span>
+          <MorphingPopover align="start" label={`Why Bed ${pad(bed.bedNumber)} is ${pillLabel(bed).toLowerCase()}`} trigger="?">
+            <span className="k">Why this band</span>
+            {reason(bed, rules)}
+            <dl>
+              <div className="mpop-row">
+                <dt>Unit</dt>
+                <b>{bed.unit ? `${bed.unit} ch${bed.channel}` : 'No unit'}</b>
+              </div>
+              <div className="mpop-row">
+                <dt>Last reading</dt>
+                <b>{bed.lastReadingAt ? fmtClock(bed.lastReadingAt) : '—'}</b>
+              </div>
+              <div className="mpop-row">
+                <dt>Critical at</dt>
+                <b>
+                  {rules.criticalMinutes} min / {rules.criticalPercent}%
+                </b>
+              </div>
+              <div className="mpop-row">
+                <dt>Attention at</dt>
+                <b>
+                  {rules.attentionMinutes} min / {rules.attentionPercent}%
+                </b>
+              </div>
+            </dl>
+          </MorphingPopover>
         </div>
         <span className="pill">
           <SeverityIcon severity={bed.severity} /> {pillLabel(bed)}
         </span>
       </div>
-
       <div className="bed-body">
         <div className="bag">
           <IvBag percent={percent} id={`bed-${bed.bedNumber}`} />

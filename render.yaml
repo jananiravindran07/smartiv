@@ -1,0 +1,28 @@
+services:
+  - type: web
+    name: smartiv-ward
+    runtime: node
+    region: singapore
+    plan: 0.5c-512mb
+    buildCommand: cd web && npm ci && npm run build && cd ../server && npm ci && npm run build
+    startCommand: cd server && npm run db:migrate && npm start
+    initialDeployHook: cd server && npm run db:seed
+    healthCheckPath: /api/health
+    autoDeployTrigger: commit
+    disk:
+      name: smartiv-sqlite
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: SIMULATE
+        value: "false"
+      - key: DB_PATH
+        value: /var/data/smartiv.sqlite
+      - key: SECURE_COOKIE
+        value: "true"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SEED_DEMO_PASSWORD
+        sync: false

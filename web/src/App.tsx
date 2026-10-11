@@ -15,7 +15,6 @@ import type {
   Bed,
   BedAction,
   DevicesResponse,
-  MetaResponse,
   Role,
   SessionUser,
   StaffMember,
@@ -41,14 +40,13 @@ export default function App() {
   const [user, setUser] = useState<SessionUser | null>(null);
   const [booting, setBooting] = useState(true);
   const [beds, setBeds] = useState<Bed[]>([]);
+  const [bedsLoaded, setBedsLoaded] = useState(false);
   const [rules, setRules] = useState<AlertRules>(DEFAULT_RULES);
   const [staff, setStaff] = useState<StaffMember[]>([]);
   const [devices, setDevices] = useState<DevicesResponse | null>(null);
   const [activity, setActivity] = useState<ActivityEntry[]>([]);
-  const [meta, setMeta] = useState<MetaResponse>({ simulate: false, speeds: [], source: 'arduino' });
   const [view, setView] = useState<ViewId>('dash');
   const [now, setNow] = useState(() => Date.now());
-  const [speed, setSpeed] = useState(10);
   const [muted, setMuted] = useState(false);
   const [toast, setToast] = useState<Toast | null>(null);
   const [busyBed, setBusyBed] = useState<number | null>(null);
@@ -68,9 +66,6 @@ export default function App() {
       .finally(() => {
         if (!cancelled) setBooting(false);
       });
-    api<MetaResponse>('/meta')
-      .then(setMeta)
-      .catch(() => undefined);
     return () => {
       cancelled = true;
     };
@@ -133,9 +128,13 @@ export default function App() {
         if (cancelled) return;
         setBeds(response.beds);
         setRules(response.rules);
+        setBedsLoaded(true);
         lastSeverities.current = new Map(response.beds.map((bed) => [bed.bedNumber, bed.severity]));
       })
-      .catch(() => showToast({ text: 'Could not load beds.', kind: 'err' }));
+      .catch(() => {
+        setBedsLoaded(true);
+        showToast({ text: 'Could not load beds.', kind: 'err' });
+      });
 
     if (isAdmin) {
       api<{ rules: AlertRules }>('/admin/rules').then((response) => setRules(response.rules)).catch(() => undefined);
@@ -145,6 +144,7 @@ export default function App() {
     source.addEventListener('snapshot', (event) => {
       const data = JSON.parse((event as MessageEvent<string>).data) as { beds: Bed[] };
       setBeds(data.beds);
+      setBedsLoaded(true);
       lastSeverities.current = new Map(data.beds.map((bed) => [bed.bedNumber, bed.severity]));
     });
     // Both frames carry the whole bed under `bed`.
@@ -247,18 +247,6 @@ export default function App() {
     [showToast],
   );
 
-  const changeSpeed = useCallback(
-    async (next: number) => {
-      setSpeed(next);
-      try {
-        await api('/admin/simulator/speed', { method: 'PATCH', body: jsonBody({ speed: next }) });
-      } catch (error) {
-        showToast({ text: error instanceof Error ? error.message : 'Could not change the demo speed.', kind: 'err' });
-      }
-    },
-    [showToast],
-  );
-
   /* ---------------- theme ---------------- */
 
   const toggleTheme = useCallback(() => {
@@ -349,13 +337,12 @@ export default function App() {
             now={now}
             title={isAdmin ? 'Ward overview' : 'My beds'}
             note={
-              isAdmin
-                ? `All ${beds.length} beds in the ward. Critical beds are pinned to the top.`
-                : `Showing the ${beds.length} bed${beds.length === 1 ? '' : 's'} assigned to you. Critical beds are pinned to the top. Ask an admin to change assignments.`
+              bedsLoaded
+                ? isAdmin
+                  ? `All ${beds.length} beds in the ward. Critical beds are pinned to the top.`
+                  : `Showing the ${beds.length} bed${beds.length === 1 ? '' : 's'} assigned to you. Critical beds are pinned to the top. Ask an admin to change assignments.`
+                : ''
             }
-            simulate={meta.simulate}
-            speed={speed}
-            onSpeed={(next) => void changeSpeed(next)}
             onAction={(bedNumber, action) => void runBedAction(bedNumber, action)}
           />
         )}
